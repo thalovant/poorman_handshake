@@ -1,5 +1,4 @@
 """Smoke tests: verify imports and basic instantiation."""
-import pytest
 
 
 def test_import_password_handshake():
