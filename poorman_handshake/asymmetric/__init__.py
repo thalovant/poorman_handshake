@@ -14,8 +14,8 @@ from poorman_handshake.asymmetric.utils import (
     export_RSA_key,
     decrypt_RSA,
     encrypt_RSA,
-    hybrid_encrypt_RSA,
-    hybrid_decrypt_RSA,
+    hybrid_encrypt_RSA as hybrid_encrypt_RSA,
+    hybrid_decrypt_RSA as hybrid_decrypt_RSA,
     sign_RSA,
     verify_RSA,
 )

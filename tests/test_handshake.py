@@ -196,7 +196,6 @@ class TestHalfHandShake:
         # HandShake: XORs two secrets
 
         server_half = HalfHandShake()
-        server_full = HandShake()
 
         # Same client handshake to both
         client = HandShake()

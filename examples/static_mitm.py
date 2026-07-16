@@ -34,5 +34,5 @@ eve = HandShake()
 eve.load_public(alice.pubkey)
 try:
     do_the_shake(alice, eve)
-except:
+except Exception:
     print("alice did not trust eve")  # MitM failed

@@ -49,6 +49,6 @@ def iv_from_hsub(hsub, digits=16):
         return False
     try:
         return bytes.fromhex(hsub[:digits])
-    except:
+    except ValueError:
         # Not all Subjects are hSub'd
         return False

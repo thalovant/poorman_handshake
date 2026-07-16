@@ -46,7 +46,7 @@ do_the_shake(alice, bob)  # trust established
 eve.load_public(alice.pubkey)  # eve pretends to be bob
 try:
     do_the_shake(alice, eve)
-except:
+except Exception:
     print("alice did not trust eve")  # MitM failed
 
 
@@ -55,5 +55,5 @@ do_the_shake(alice, eve)  # eve does the handshake before bob
 print("alice thinks eve is bob")  # MitM success
 try:
     do_the_shake(alice, bob)
-except:
+except Exception:
     print("alice did not trust the real bob")

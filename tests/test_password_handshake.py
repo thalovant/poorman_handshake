@@ -81,7 +81,7 @@ def test_password_handshake_receive_and_verify():
     bob = PasswordHandShake(password, min_bits=0)
 
     alice_shake = alice.generate_handshake()
-    bob_shake = bob.generate_handshake()
+    bob.generate_handshake()
 
     # receive_and_verify should return True and set salt
     assert bob.receive_and_verify(alice_shake)
