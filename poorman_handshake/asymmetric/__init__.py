@@ -51,6 +51,8 @@ class HandShake:
             stacklevel=2,
         )
         self.private_key = None
+        self._public_key_source = None
+        self._public_key_pem = None
         if path and isfile(path):
 
             try:
@@ -71,8 +73,22 @@ class HandShake:
             self.private_key = RSA.generate(key_size)
             if path:
                 self.export_private_key(path)
+        self._refresh_public_key_cache()
         self.target_key = None
         self.secret = None
+
+    def _refresh_public_key_cache(self):
+        """Cache the immutable public PEM for the current private key."""
+        if not self.private_key:
+            self._public_key_source = None
+            self._public_key_pem = None
+            return
+        self._public_key_source = self.private_key
+        self._public_key_pem = (
+            self.private_key.public_key()
+            .export_key(format="PEM")
+            .decode("utf-8")
+        )
 
     def load_private(self, path: str):
         """
@@ -82,6 +98,7 @@ class HandShake:
             path (str): Path to the private key file.
         """
         self.private_key = load_RSA_key(path)
+        self._refresh_public_key_cache()
 
     def export_private_key(self, path: str):
         """
@@ -103,7 +120,9 @@ class HandShake:
         """
         if not self.private_key:
             return None
-        return self.private_key.public_key().export_key(format="PEM").decode("utf-8")
+        if self._public_key_source is not self.private_key:
+            self._refresh_public_key_cache()
+        return self._public_key_pem
 
     def generate_handshake(self, pub: Optional[Union[str, bytes, RSA.RsaKey]]  = None) -> str:
         """
