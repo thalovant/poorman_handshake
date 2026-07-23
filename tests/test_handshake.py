@@ -1,4 +1,5 @@
 """Tests for HandShake (RSA-based key exchange)."""
+from copy import copy
 from secrets import compare_digest
 import pytest
 import tempfile
@@ -86,6 +87,62 @@ def test_handshake_pubkey_export():
     from Cryptodome.PublicKey import RSA
     imported = RSA.import_key(pubkey)
     assert not imported.has_private()  # Public key should not have private component
+
+
+def test_handshake_pubkey_export_is_cached_across_copies(monkeypatch):
+    """Copies used per connection reuse the template's exported public PEM."""
+    export_calls = 0
+
+    class FakePublicKey:
+        def export_key(self, *, format):
+            nonlocal export_calls
+            assert format == "PEM"
+            export_calls += 1
+            return b"cached-public-key"
+
+    class FakePrivateKey:
+        def public_key(self):
+            return FakePublicKey()
+
+    private_key = FakePrivateKey()
+    monkeypatch.setattr(
+        "poorman_handshake.asymmetric.RSA.generate",
+        lambda _key_size: private_key,
+    )
+
+    template = HandShake()
+    connection = copy(template)
+
+    assert template.pubkey == "cached-public-key"
+    assert connection.pubkey == "cached-public-key"
+    assert export_calls == 1
+
+
+def test_handshake_pubkey_cache_tracks_private_key_replacement():
+    """Replacing a private key cannot return the prior key's public PEM."""
+    class FakePublicKey:
+        def __init__(self, value):
+            self.value = value
+
+        def export_key(self, *, format):
+            assert format == "PEM"
+            return self.value
+
+    class FakePrivateKey:
+        def __init__(self, value):
+            self.value = value
+
+        def public_key(self):
+            return FakePublicKey(self.value)
+
+    shake = HandShake.__new__(HandShake)
+    shake.private_key = FakePrivateKey(b"first-public-key")
+    shake._public_key_source = None
+    shake._public_key_pem = None
+
+    assert shake.pubkey == "first-public-key"
+    shake.private_key = FakePrivateKey(b"second-public-key")
+    assert shake.pubkey == "second-public-key"
 
 
 def test_handshake_key_file_storage():
